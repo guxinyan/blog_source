@@ -102,12 +102,168 @@ bar(40);
 ## “欺骗"词法
 在javaScript中，有两种方式可以在运行时来”修改“词法作用域。
 *   eval
+> javaScript中的eval()函数可以接受一个字符串作为参数，并将其中的内容视为好像在书写时就存在于程序中这个位置的代码。
+在严格模式下，eval()在运行时有自己的词法作用域，意味着无法修改所在作用域。
 *   with
+> with可以讲一个没有或有多个属性的对象处理为一个完全隔离的词法作用域，因此这个对象的属性也会被处理为定义在这个作用域中的词法标识符。
 
 ---
 # 函数作用域、块作用域
+## 函数作用域
+> 函数作用域：属于这个函数的全部变量都可以在整个函数的范围内使用及服用（事实在嵌套的作用域中也可以使用）
+
+说到函数作用域，一般我们都要来顺道提下函数声明和函数表达式。
+> 解析器会率先读取函数声明，并使其在执行任何代码之前可用（声明提升）；函数表达式则必须等到解析器执行到它所在的代码行，才会真正被解释执行。
+
+```js
+函数声明：
+function foo(){
+    console.log('test');
+}
+
+一般函数表达式：
+var foo = function(){
+    console.log('test');
+}
+
+匿名函数表达式：
+setTimeOut(function(){
+    console.log('test');
+},1000);
+
+立即执行函数表达式(IIFE)
+(function foo(){
+    console.log('test');
+})();
+```
+## 块作用域
+*   with
+上代码说明：
+```javaScript
+var a = 1;
+var o1 = {
+    a:2
+}
+var o2 = {
+    b:3
+}
+
+function foo(obj){
+    with(obj){
+        console.log(a);
+    }
+}
+
+foo(o1); //2
+foo(o2); //1
+```
+with会将对象自成作用域，对象中的属性称为作用域中的词法标识符；因此o1中的a属性直接覆盖了全局作用域中的a变量。而o2中没有a属性，会向上查找，知道找到全局作用域中的a。
+*   try/catch
+```javaScript
+var foo = 10;
+try{
+    throw 20;
+}catch(foo){
+    function f(){
+        console.log(foo);
+    }
+    f(); //20
+}
+```
+按照我们原以为的js中普通{}理解，函数f的声明应该outer是指向全局作用域的foo（10）,但是最终结果为20;说明try/catch会创建一个块作用域。
+*   let
+let关键字是es6引入的，为其声明的变量隐式劫持在了所在的块作用域。
+```javaScript
+if(true){
+    let bar = 3;
+    console.log(bar); //3
+}
+console.log(bar)//ReferenceError
+```
+*   const
+const也是es6引入的，与let类似，也能创建块作用域变量，不用的是const创建的值是固定的常量。
 
 ---
 # 闭包
 ## 什么叫闭包
+个人认为，简单理解，满足两种条件的可以称为闭包：1、可以访问其他作用域 2、在自己定义的词法作用域以外的地方执行，依然持有对该作用域的引用。
+```js
+function foo(){
+    var a = 2;
+    function bar(){
+        console.log(a);
+    }
+    return bar;
+}
+var baz = foo();
+baz(); //2 ---这就是闭包
+```
+> 其实，在定时器，事件监听器、Ajax请求、跨窗口通信、Web Workers通信或者任何其他的异步（或者同步）任务中，只要使用了回调函数，实际上就是在使用闭包！
+
+那么现在，我讲拿出我们经典的循环例子来说明----闭包
+```js
+for(var i = 0; i <= 5; i++){
+    setTimeOut(function(){
+        console.log(i);
+    }, i*1000);
+}
+结果:每隔一秒打印一个6
+原因：for循环声明了6个函数，每隔一秒执行；在执行的时候，引擎会去作用域查找变量i,而实际上5个函数的i都是被定义在全局作用域中共享的，全局作用域中的i为6。
+```
+```js
+以上代码用立即执行函数实现
+for(var i = 0; i <= 5; i++){
+    (function(j){
+        setTimeOut(function(){
+            console.log(j);
+        },j*1000);
+    })(i);  
+}
+结果：每隔一秒输出[0, 1, 2, 3, 4, 5]
+```
 ## 模块
+说到闭包，我们就不得不提下现今非常流行的---模块。
+什么叫做模块？(1)为创建内部作用域调用了一个包装函数 (2)包装函数的返回值必须至少包括一个对内部函数的引用，这样就会创建涵盖整个包装函数内部作用域的闭包。
+```js
+现代的模块机制
+var myModules = (function manager(){
+    var modules = {};
+    function define(name, deps, impl){
+        for(var i=0; i< deps.length; i++){
+            deps[i] = modules[deps[i]];
+        }
+        modules[name] = impl.apply(impl, deps);
+    }
+    function get(name){
+        return modules[name];
+    }
+    return {
+        define:define,
+        get:get
+    }
+})();
+
+myModules.define('bar', [], function(){
+    function hello(who){
+        return 'let me introduce '+who;
+    } 
+    return {
+        hello:hello
+    }
+});
+
+myModules.define('foo', ['bar'], function(){
+   var hungry = 'hippo';
+   function awesome(){
+        console.log(bar.hello(hungry).toUpperCase());
+   } 
+   return {
+        awesome:awesome
+   }
+});
+var bar = myModules.get('bar');
+var foo = myModules.get('foo');
+console.log(bar.hello('hippo')); // 'let me introduce hippo'
+foo.awesome(); // 'LET ME INTRODUCE HIPPO'
+```
+
