@@ -368,7 +368,14 @@ var B = React.createClass({
     return <A num={this.state.num}/>
   }
 })
+
+控制台输出：
+"render:1"
+"render:2"
 ```
+我们发现，在父组件B更新状态时，子组件A随着B组件只更新了两次。在A组件中的componentWillReceiveProps调用setState并没有触发第三次render，并且直接更新了第二次render的num值。
+> componentWillReceiveProps方法可以作为React在props传入后，渲染之前setState的机会，不会导致二次渲染。
+
 ---
 # 四、移除
 <img src="/blogImg/unmount.png" alt="unmount_lifecycle" style="width:60%">
