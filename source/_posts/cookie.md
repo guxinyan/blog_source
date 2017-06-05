@@ -82,7 +82,50 @@ Set-Cookie: name=aaa; secure
 
 ---
 # Cookie的设置与获取
-## 子Cookie
+```js
+var CookieUtil = {
 
----
-# 跨域
+  _get: function (name) {
+    var cookieName = encodeURIComponent(name) + "=",
+      cookieStart = document.cookie.indexOf(cookieName),
+      cookieValue = null;
+    if (cookieStart > -1) {
+      var cookieEnd = document.cookie.indexOf(";", cookieStart);
+      if (cookieEnd == -1) {
+        cookieEnd = document.cookie.length;
+      }
+      cookieValue = decodeURIComponent(document.cookie.substring(cookieStart + cookieName.length, cookieEnd));
+    }
+    return cookieValue;
+  },
+
+  _get2: function (name) {
+    var regExp = new RegExp(_key + '=([^;]+)');
+    var result = regExp.exec(document.cookie);
+    if (result) {
+      return unescape(result[1]);
+    }
+    return null;
+  },
+
+  _set: function (name, value, expires, path, domain, secure) {
+    var cookieText = encodeURIComponent(name) + "=" +
+      encodeURIComponent(value);
+    (expires instanceof Date) && (cookieText += "; expires=" + expires.toGMTString());
+    path && (cookieText += "; path=" + path);
+    domain && (cookieText += "; domain=" + domain);
+    secure && (cookieText += "; secure");
+    document.cookie = cookieText;
+  },
+
+  unset: function (name, path, domain, secure) {
+    this._set(name, "", new Date(0), path, domain, secure);
+  }
+}
+```
+## 子Cookie
+> 为了绕开浏览器的单域名下的cookie数限制，子cookie的概念产生了。子cookie是存在在单个cookie中的更小段的数据，使用cookie值来存储多个名称值对。
+常见格式：
+name=name1=value1&name2=value2&name3=value3
+
+子cookie其实也是利用了单个cookie进行存储和访问。子cookie的解析和序列化也会因此变得复杂。
