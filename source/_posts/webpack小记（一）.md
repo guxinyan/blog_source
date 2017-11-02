@@ -364,7 +364,7 @@ webpack配置添加loader
   sass-loader 加载和转译 SASS/SCSS 文件
 
 ## 处理图片
-<!-- > npm install --save-dev url-loader
+> npm install --save-dev url-loader
 
 将hello.scss修改为：
 ```css
@@ -399,11 +399,7 @@ query: {
 再次打包，我们发现，图片被转成base64编码了。
 > The url-loader works like the file-loader, but can return a DataURL if the file is smaller than a byte limit
 
-这是npm官网上url-loader的解释，当我们设置了limit的时候，如果图片的大小 -->
-
-
----
-# 构建本地服务器
+这是npm官网上url-loader的解释，当我们设置了limit的时候，如果图片的大小小于limit的设置时，会转成base64编码。
 
 ---
 参考链接
