@@ -3,7 +3,7 @@ title: webpack小记（一）
 date: 2017-09-27 16:25:54
 tags:
   - 前端
-  - 打包
+  - webpack
 categories:
   - 学习笔记
 ---
