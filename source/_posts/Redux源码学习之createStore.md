@@ -1,5 +1,5 @@
 ---
-title: Redux系列之createStore
+title: Redux源码学习之createStore
 date: 2018-02-26 16:57:58
 tags:
   - 前端
@@ -8,9 +8,10 @@ categories:
   - 学习笔记
 ---
 
+
 之前在项目中，偶尔交互复杂的页面我们项目组会引入了Redux，快速迭代的过程中，我们在网上快速学习了用法，跑了demo，照葫芦画瓢地用进了项目里。当时自己的感受就是：一层套一层，这里要用这个，那里要结合那个，整个redux的引入，合着react-redux（项目用的react），用起来就是一种仿照的迷惘，只知道“要这样用”。现在前端圈可能就会有这种现象，结合的东西太多太复杂，当我们引入新东西的时候可能一下子需要学习的是这个新技术的整个生态圈，学起来反而有些吃力。这时候，我们需要做的是，抛开各种花哨的便利工具，告诉自己最简单的用法怎么整。
 
-看了redux的源码之后，我可以这么说，createStore就是redux的精髓，刚开始，我们只需要这个函数做了什么，根本不用care别的。<span style="color:red">全文基于redux 3.7.2</span>。
+看了redux的源码之后，我可以这么说，createStore就是redux的精髓，刚开始，我们只需要这个函数做了什么，根本不用care别的。
 
 <!-- more -->
 
@@ -222,4 +223,6 @@ store.dispatch({type: 'INCREMENT'}); //store: 1
 store.dispatch({type: 'INCREMENT'}); //store: 2
 store.dispatch({type: 'DECREMENT'}); //store: 1
 ```
+
+<span style="color:red">全文基于redux 3.7.2</span>
 
