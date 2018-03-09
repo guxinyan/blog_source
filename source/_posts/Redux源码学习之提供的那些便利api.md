@@ -130,9 +130,62 @@ const middlewareAPI = {
 
 ---
 # combineReducers
+用法：
+```js
+const finalReducer = Redux.combineReducers({
+  reducer0: reducer0,
+  reducer1: reducer1,
+  reducer2: reducer2
+});
+```
+> 将独立的reducers整合成一个大家庭，在需要处理处理数据比较多的情况下，比较容易梳理， 并不一定要使用。
+
+源码大概就是：
+* 刚开始一些规范性检查：
+1.参数检测
+2.每个Reducer是否设定初始值
+* 将传入的Reducer整体对象赋值通过key遍历， 存储在一个finalReducers对象中
+* 返回一个函数（其实就是一个整体Reducer）
+1.参数为state, action
+2.遍历finalReducers中的所有reducer， 触发对应的action， 复制给新的state。
+```js
+ let hasChanged = false
+    const nextState = {}
+    for (let i = 0; i < finalReducerKeys.length; i++) {
+      const key = finalReducerKeys[i]
+      const reducer = finalReducers[key]
+      const previousStateForKey = state[key]
+      const nextStateForKey = reducer(previousStateForKey, action)
+      if (typeof nextStateForKey === 'undefined') {
+        const errorMessage = getUndefinedStateErrorMessage(key, action)
+        throw new Error(errorMessage)
+      }
+      nextState[key] = nextStateForKey
+      hasChanged = hasChanged || nextStateForKey !== previousStateForKey  
+      //个人觉得这个对比基本对于小reducer返回是对象的没有任何作用
+      //由于对象引用经过Reducer,一定会改变
+    }
+    return hasChanged ? nextState : state
+  }
+```
+
+> 所以用了combineReducers这个方法时， 我们以为只调用了对应state的reducer， 其实并不是， dispatch action调用了所有的 reducer。
+
+
 
 ---
 # bindActionCreators
+用法：
+```js
+const bindActions = Redux.bindActionCreators(Actions, store.dispatch);
+//然后直接出发bindActions的对应方法即可
+```
+>  处理传入的action, 返回一个拥有同样key, 但是每个方法用dispatch包括的对象。
+
+这样，触发方法的时候，不到到处都可以去写store.dispatch(action), 只要直接调用action即可。
+
+源码我就不贴了， 有兴趣可以去官网看看。大概就是， 遍历对象的key， 然后赋值一个新的对象， 并将所有的方法用dispatch包裹一遍， 返回这个新对象。
+
 
 <span style="color:red">全文基于redux 3.7.2</span>
 
