@@ -55,7 +55,7 @@ ReactDOM.render(
 
 ---
 ## componentWillMount
-componentWillMount是render前最后一次修改state的机会,但在此函数对state的修改不会触发re-rendering
+componentWillMount是render前最后一次修改state的机会, 在此函数对state的修改完毕之后触发组件的Render。
 ```js
 var A = React.createClass({
     getInitialState: function(){
