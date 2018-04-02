@@ -30,12 +30,12 @@ autoprefixer({ browsers: ["last 2 versions"] })
 所以，不同机器上下载的caniuse-db不同导致了这样的结果。
 
 到这里， 我又有了一个疑问。我们本地包的下载都是依赖package.json的呀，里面都写死了autoprefixer包的版本号，为什么会产生caniuse-db包的不用呢。
-搜了（相关资料之后）[https://docs.npmjs.com/getting-started/using-a-package.json]
-> npm uses Semantic Versioning, or, as we often refer to it, SemVer, to manage versions and ranges of versions of packages.
-If you have a package.json file in your directory and you run npm install, npm will look at the dependencies that are listed in that file and download the latest versions, using semantic versioning.
+`关于package.json version那些事`：
+指定版本：比如，1.1.1；遵循大版本.次要版本.小版本的格式规定
+波浪号+指定版本：比如， ~1.1.1；表示安装1.1.x的最新版本， 不低于1.1.1
+插入号+指定版本：比如， ^1.1.1；比碍事安装1.x.x的最新版本， 不低于1.1.1
+latest: 安装最新版本
 
-当我们输入npm install之后， 发生了什么？
-npm包有个大小版本的概念， 直接npm install之后，依赖package.json中的大版本控制，比如1.0.2，会去搜寻这个`1.0`版本集中最新的那个npm包，也许是1.9.9哈哈。
 
 附上重要链接：
 (autoprefixer)[https://github.com/postcss/autoprefixer#options]
