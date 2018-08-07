@@ -175,26 +175,248 @@ Error boundaries 不能捕获的错误
 同时，在开发环境，控制台会输出所有的错误，包括被捕获的错误。
 
 ---
- # 新的render返回
+# 新的render返回
+* React elements。
+* Booleans or null。
+* Arrays(v16.0.0) and fragments(v16.2.0)。
+  ```js
+  render() {
+    return [
+      <li key="A">First item</li>,
+      <li key="B">Second item</li>,
+      <li key="C">Third item</li>,
+    ];
+  }
+  需要给每个item添加key。
+  ```
+  ```js
+  const Fragment = React.Fragment;
+
+  render(){
+      return (
+        <Fragment>
+          <ChildA />
+          <ChildB />
+          <ChildC />
+        </Fragment>
+      );
+  }
+
+  存在一种缩写方式
+  render(){
+      return (
+        <>
+          <ChildA />
+          <ChildB />
+          <ChildC />
+        </>
+      );
+  }
+  但是，缩写方式的标签不能有属性值。
+  ```
+* Portals(v16.0.0)。
+ 具体看下文的portal。
+* String and numbers(v16.0.0)。
+ 可以直接返回text node了。
+
 
 ---
- # portal
+# portal
+*v16.0.0更新*
+## 用法
+```js
+ReactDOM.createPortal(child, container)
+child 见上面的render 返回
+container dom元素，作为容器
+```
+  
+## 主要应用场景
+最常用的场景就是弹窗Modal。
+
+### 以前使用方式
+在以前我的概念里，弹窗的使用场景有两种：
+* 触发了某种条件，产生了弹窗。
+[【我是一个小栗子】](https://codepen.io/guxinyan/pen/MBGNxz?editors=1011)
+dom元素分离。用createLayer 封装了蒙层。弹窗是在handle函数里面直接调用的，弹窗什么时候关，由弹窗自己控制。父组件与弹窗的交互，通过参数option传递。参数无法更新。
+* 通过父组件state中的弹窗控制参数showAlert控制弹窗，弹窗中的数据和父组件息息相关，并随父组件数据改变，从而改变。
+[【又来一个小栗子】](https://codepen.io/guxinyan/pen/BPPKvV?editors=1011)
+dom元素嵌套在父元素之中。
+
+
+### 现在使用方式
+```js
+const modalRoot = document.getElementById('modal-root');
+
+class Modal extends React.Component {
+  constructor(props) {
+    super(props);
+    this.el = document.createElement('div');
+  }
+
+  componentDidMount() {
+    modalRoot.appendChild(this.el);
+  }
+
+  componentWillUnmount() {
+    modalRoot.removeChild(this.el);
+  }
+
+  render() {
+    return ReactDOM.createPortal(
+      this.props.children,
+      this.el,
+    );
+  }
+}
+
+class Parent extends React.Component {
+  constructor(props){
+    super(props);
+  }
+  
+  render() {
+    return (
+      <div>
+          ...
+          <Modal>{填一些我们想要的内容}</Modal>
+          ...
+      </div>
+    );
+  }
+}
+```
+和容错组件一个概念，把弹窗这件事，提出来，封成一个公用组件。是以前两种弹窗使用方式的结合体。在dom结构上，脱离了父组件的元素嵌套，但又可受父组件的state控制。
+
+**支持事件冒泡**：
+现在的这种弹窗形式，在弹窗上的点击事件，是可以冒泡到Parent上去捕获的。这是比较神奇的点，dom元素逃离了原来的结构，但是事件依旧可以捕获。具体你可以写个小栗子试一下~
+
 
 ---
- # 标签自定义属性
+# 标签自定义属性
+## before 16.0.0
+react 维护了一份支持属性的白名单，遇到不在白名单中的属性，会自动忽略。这种当时，让属性更新起来比较麻烦，滞后。
+## after 16.0.0
+* 容许自定义标签存在
+* 标准的attr的属性，依然要遵守驼峰写法
 
 ---
- # 新的Context API
+# 新的Context API
+*v16.3.0更新*
+Context提供了一种在组件树中传递数据的新的方式，而不用依赖于组件的props层层传递。
+在v16.3之前，react就提供了Context的api，只不过不怎么建议使用。
+
+## 什么时候该使用
+可以被认为全局的配置，我们可以放在Context中使用，比如：用户认证信息，框架主题风， 还有我们比较熟悉的redux中的store。balabla。
+[用法小demo](https://codepen.io/guxinyan/pen/WKvqxB)
+
+## api
+### React.createContext
+```js
+const {Provider, Consumer} = React.createContext(defaultValue);
+```
+Provider和Consumer是配对使用的
+Consumer只有在组件树中找不到对应的Provider时，才会读取defaultValue。
+[show the code](https://codepen.io/guxinyan/pen/MBwMxJ)
+
+### Provider
+```js
+<Provider value={/* some value */}>
+```
+* 一个Provider可以对应多个Consumer。
+* Provider可以多层嵌套。内层可以覆盖外层的值。
+
+### Consumer
+```js
+<Consumer>
+  {value => /* render something based on the context value */}
+</Consumer>
+```
+Consumer子元素必须是一个函数，函数返回React node（同render要求）
+[examples](https://reactjs.org/docs/context.html#examples)
 
 ---
- # 新的ref API
+# 新的ref API
+## createRef API
+** 什么时候使用ref **
+三种应用场景
+* 获取焦点，文本选择，媒体播放
+* 触发动画
+* 集成第三方库的时候
+
+** 新的api用法 **
+```js
+class MyComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.myRef = React.createRef();
+  }
+  render() {
+    return <div ref={this.myRef} />;
+  }
+}
+```
+```js
+const node = this.myRef.current;
+```
+node的值取决于ref设置在什么哪里：
+* ref作为HTML element的属性值设置，则node拿到的是DOM element
+* ref作为自定义组件的属性值设置，则node拿到的是组件的实例
+
+**functional components 不能使用ref属性，因为functional components没有实例， 但是在functional components组件内部可以使用Ref**
+
+## forwardRef API
+Ref forwarding提供了一种新方式，能将ref传递给组件的子元素。
+简单小栗子：
+```js
+const FancyButton = React.forwardRef((props, ref) => (
+  <button ref={ref} className="FancyButton">
+    {props.children}
+  </button>
+));
+
+const ref = React.createRef();
+<FancyButton ref={ref}>Click me!</FancyButton>;
+
+const BtnNode = ref.current;
+```
+FancyButton组件必须要用React.forwardRef(props, ref)包一层。
 
 ---
- # 严格模式组件
+# 严格模式组件
+在v16.3.0 React新增了一种严格模式组件，可以帮助我们更好的预防bug。当然，只影响开发环境。
+用法有点类似Fragment
+```js
+function ExampleApplication() {
+  return (
+    <div>
+      <React.StrictMode>
+        <div>
+          <ComponentOne />
+          <ComponentTwo />
+        </div>
+      </React.StrictMode>
+    </div>
+  );
+}
+```
+React只会检测<StrictMode></StrictMode>包含的内容。
+严格模式下，
+* 鉴定不安全的生命周期函数
+* 对ref的字符串用法进行警告处理
+* 对老的context api的用法进行警告处理
+* 检测不可预期的副作用（结合上文的异步渲染，生命周期中的一些操作导致的问题）
 
- 
 ---
 # 更强的服务端渲染
+* v16之前严格对比客户端render函数执行与服务端渲染出来的字符。v16放宽了这个限制。
+* 新的函数：ReactDOM.hydrate：不要求服务器端和客户端之间产生的dom完全一模一样，寻找最大重合dom。
+* 不再到处检查process.env.NODE_ENV=production，只在入口检查
+* v16之后可以尝试不用React做服务端渲染
+* 传说性能的改进，是以前的3倍！
+* html的流式推送方式
 
 ---
- # 其他
+# 其他
+* Reduced file size
+* MIT licensed
+* New core architecture
