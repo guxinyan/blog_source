@@ -40,5 +40,5 @@ latest: 安装最新版本
 
 
 附上重要链接：
-(autoprefixer)[https://github.com/postcss/autoprefixer#options]
-(Browserslist)[https://github.com/browserslist/browserslist#queries]
+[autoprefixer](https://github.com/postcss/autoprefixer#options)
+[Browserslist](https://github.com/browserslist/browserslist#queries)
